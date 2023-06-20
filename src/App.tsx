@@ -1,6 +1,7 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import classNames from "classnames";
+import { useDebounce } from "use-debounce";
 
 import { 
   Paper,
@@ -26,7 +27,6 @@ import { CurrencyDataType } from "./constants/currencyData";
 // Styles.
 import "./App.scss";
 
-type InputType = "convertFrom" | "convertTo";
 interface AmountLimits { 
   [key: string]: number; 
 }
@@ -49,14 +49,17 @@ const App:React.FC = () => {
   const [amountInFromCurrency, setAmountInFromCurrency] = useState<boolean>(false)
   const [error, setError] = useState<boolean>(false);
 
+  const [debouncedAmountFrom] = useDebounce(amountFrom, 500);
+  const [debouncedAmountTo] = useDebounce(amountTo, 500);
+
   const currencyFrom = currencyPair[0];
   const currencyTo = currencyPair[1];
 
   useEffect(() => {
     if (isInitialyConverted) {
-      if (!amountInFromCurrency && (Number(amountFrom) > 0)) {
+      if (!amountInFromCurrency && (Number(debouncedAmountFrom) > 0)) {
         const conversionFromPromise = Promise.resolve(
-          getConversionData(currencyPair[0], currencyPair[1], amountFrom)
+          getConversionData(currencyPair[0], currencyPair[1], debouncedAmountFrom)
         );
 
         conversionFromPromise.then((data) => {
@@ -65,12 +68,12 @@ const App:React.FC = () => {
           } else {
             setError(false);
             setAmountTo(data.toAmount.toString()); 
-            setConversionRate(data.rate)
+            setConversionRate(data.rate);
           }
         }).catch(() => setError(true));
-      } else if (amountInFromCurrency && (Number(amountTo) > 0)) {
+      } else if (amountInFromCurrency && (Number(debouncedAmountTo) > 0)) {
         const conversionToPromise = Promise.resolve(
-          getConversionData(currencyPair[1], currencyPair[0], amountTo)
+          getConversionData(currencyPair[1], currencyPair[0], debouncedAmountTo)
         );
     
         conversionToPromise.then((data) => {
@@ -84,12 +87,12 @@ const App:React.FC = () => {
       }
     }
   }, [
-    currencyPair, 
-    amountFrom, 
-    isInitialyConverted, 
-    amountInFromCurrency, 
-    amountTo, 
-    conversionRate
+    debouncedAmountTo,
+    isInitialyConverted,
+    error,
+    amountInFromCurrency,
+    debouncedAmountFrom,
+    currencyPair,
   ]);
 
   const swapCurrencies = ():void => {
@@ -99,8 +102,9 @@ const App:React.FC = () => {
     setCurrencyPair([...currencyPair].reverse());
   };
 
-  const handleAmountChange = (value: string, inputType: InputType):void => {
-    if (inputType === "convertFrom") {
+  const handleAmountChange = useCallback((e: React.ChangeEvent<HTMLInputElement>):void => {
+    const { value, name } = e.target;
+    if (name === "convertFrom") {
       if (amountInFromCurrency) {
         setAmountInFromCurrency(false);
       }
@@ -116,7 +120,7 @@ const App:React.FC = () => {
       }
       setAmountTo(value);
     }
-  }
+  }, [amountInFromCurrency, currencyFrom]);
 
   return (
     <div className="App">
@@ -160,24 +164,26 @@ const App:React.FC = () => {
                 "App__currency-amount-inputs-container--converted": isInitialyConverted,
               })}>
                 <TextInput
+                  name="convertFrom"
                   error={error}
                   helperText={error && ERROR_TEXT}
                   type="number"
                   id="currency-amount-from" 
                   label="AMOUNT:" 
-                  value={amountFrom || ""}
-                  onChange={(e) => handleAmountChange(e.target.value, "convertFrom")}
+                  value={amountFrom}
+                  onChange={handleAmountChange}
                   adornmentText={currencyFrom}
                 />
                 {isInitialyConverted &&
-                  <TextInput 
+                  <TextInput
+                    name="convertTo"
                     error={error}
                     helperText={error && ERROR_TEXT}
                     type="number"
                     id="currency-amount-to" 
                     label="CONVERTED TO:" 
-                    value={amountTo || ""}
-                    onChange={(e) => handleAmountChange(e.target.value, "convertTo")}
+                    value={amountTo}
+                    onChange={handleAmountChange}
                     adornmentText={currencyTo}
                   />
                 }

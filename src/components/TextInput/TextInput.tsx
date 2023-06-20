@@ -10,6 +10,7 @@ interface Props {
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   adornmentText: string;
+  name: string,
   error?: boolean;
   helperText?: string | boolean; 
 }
@@ -23,9 +24,11 @@ const TextInput = ({
   adornmentText,
   error,
   helperText,
+  name,
 }: Props) => {
   return (
     <TextField
+      name={name}
       error={error}
       helperText={helperText}
       type={type}
