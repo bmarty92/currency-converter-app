@@ -11,7 +11,7 @@ import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 import TripOriginIcon from '@mui/icons-material/TripOrigin';
 
 // Api.
-import { getConversionData, ConversionData } from "./api/getConversionData";
+import { getConversionData } from "./api/getConversionData";
 
 // Components.
 import SelectField from './components/SelectField';
@@ -55,10 +55,10 @@ const App:React.FC = () => {
   useEffect(() => {
     if (isInitialyConverted) {
       if (!amountInFromCurrency && (Number(amountFrom) > 0)) {
-        const conversionFromPromise = new Promise<ConversionData>((resolve) => {
-          resolve(getConversionData(currencyPair[0], currencyPair[1], amountFrom));
-        });
-    
+        const conversionFromPromise = Promise.resolve(
+          getConversionData(currencyPair[0], currencyPair[1], amountFrom)
+        );
+
         conversionFromPromise.then((data) => {
           if (data.error) {
             setError(true);
@@ -69,9 +69,9 @@ const App:React.FC = () => {
           }
         }).catch(() => setError(true));
       } else if (amountInFromCurrency && (Number(amountTo) > 0)) {
-        const conversionToPromise = new Promise<ConversionData>((resolve) => {
-          resolve(getConversionData(currencyPair[1], currencyPair[0], amountTo));
-        });
+        const conversionToPromise = Promise.resolve(
+          getConversionData(currencyPair[1], currencyPair[0], amountTo)
+        );
     
         conversionToPromise.then((data) => {
           if (data.error) {
