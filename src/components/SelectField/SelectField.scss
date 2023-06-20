@@ -1,0 +1,16 @@
+.SelectField {
+  width: 100%;
+
+  &__currency-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  &__currency-flag {
+    border-radius: 4px;
+    width: 40px;
+    height: 25px;
+    object-fit: cover;
+  }
+}
