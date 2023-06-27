@@ -55,6 +55,8 @@ const App:React.FC = () => {
   const currencyFrom = currencyPair[0];
   const currencyTo = currencyPair[1];
 
+  const updatedCurrency = amountInFromCurrency ? debouncedAmountTo : debouncedAmountFrom;
+
   useEffect(() => {
     if (isInitialyConverted) {
       if (!amountInFromCurrency && (Number(debouncedAmountFrom) > 0)) {
@@ -86,12 +88,12 @@ const App:React.FC = () => {
         }).catch(() => setError(true));
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    debouncedAmountTo,
+    updatedCurrency,
     isInitialyConverted,
     error,
     amountInFromCurrency,
-    debouncedAmountFrom,
     currencyPair,
   ]);
 
